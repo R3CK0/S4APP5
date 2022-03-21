@@ -22,4 +22,4 @@ class Extractor:
         if sample_rate is None:
             sample_rate = self.sample_rate
 
-    
+        
