@@ -32,7 +32,6 @@ class Extractor:
         note = np.array(note)
         #on considere seuelement les 32 sinusoides principales
         temps_centre = np.arange(-note.size/2, note.size/2, 1)
-        temps_0 = np.arange(0, note.size, 1)
         self.axe_freq = temps_centre / note.size * sample_rate
 
         #le filtre de hanning permet de reduire l'effet de leaking autour des frequence principale
@@ -42,16 +41,15 @@ class Extractor:
         self.magnitude_FFT = np.abs(self.note_LA_FFT)
         self.magnitude_FFT_dB = 20 * np.log10(self.magnitude_FFT[:80000])
         self.phase_FFT = np.angle(self.note_LA_FFT[:80000])
-        self.axe_freq_n = temps_0 * sample_rate / note.size
 
         self.peak, _ = signal.find_peaks(self.magnitude_FFT_dB, distance=1000, prominence=10)
         self.peak = self.peak[1:32]
         
-        self.features = {'magnitude': self.magnitude_FFT[self.peak], 'harmonique': self.axe_freq_n[self.peak],
+        self.features = {'magnitude': self.magnitude_FFT[self.peak], 'harmonique': self.peak / note.size * self.sample_rate,
                          'magnitude_dB': self.magnitude_FFT_dB[self.peak], 'phase': self.phase_FFT[self.peak]}
 
         return {'peak': self.peak, 'FFT_magnitude': self.magnitude_FFT, 'FFT_magnitude_dB': self.magnitude_FFT_dB,
-                'FFT_phase': self.phase_FFT, 'not_sure_yet': self.axe_freq_n, 'freq': self.axe_freq}
+                'FFT_phase': self.phase_FFT, 'freq': self.axe_freq}
 
 
     def extract_envelope(self, order):
