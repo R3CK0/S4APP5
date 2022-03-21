@@ -12,6 +12,16 @@ class Extractor:
         self.filename = filename
         self.sample_rate = None
         self.data = None
+        self.original = True # True if never changed
+
+        self.axe_freq = None
+        self.magnitude_FFT = None
+        self.magnitude_FFT_dB = None
+        self.peak = None
+        self.phase_FFT = None
+        self.features = dict()
+        self.raw = dict()
+
         if filename is not None:
             print('fetching data...')
             self.read(self.filename)
@@ -19,6 +29,10 @@ class Extractor:
 
     def read(self, filename):
         self.sample_rate, self.data = wavfile.read(filename)
+
+    def update_data(self, sample_rate, data):
+        self.sample_rate = sample_rate
+        self.data = data
 
     def get_raw_data(self, item=None):
         return self.sample_rate, self.data
@@ -37,19 +51,27 @@ class Extractor:
         #le filtre de hanning permet de reduire l'effet de leaking autour des frequence principale
         Hanning = np.hanning(note.size)
 
-        self.note_LA_FFT = fft(note * Hanning, note.size)
-        self.magnitude_FFT = np.abs(self.note_LA_FFT)
-        self.magnitude_FFT_dB = 20 * np.log10(self.magnitude_FFT[:80000])
-        self.phase_FFT = np.angle(self.note_LA_FFT[:80000])
-
-        self.peak, _ = signal.find_peaks(self.magnitude_FFT_dB, distance=1000, prominence=10)
-        self.peak = self.peak[1:32]
+        note_FFT = fft(note * Hanning, note.size)
+        self.magnitude_FFT = np.abs(note_FFT)
+        self.magnitude_FFT_dB = 20 * np.log10(self.magnitude_FFT[:int(note.size/2)])
+        self.phase_FFT = np.angle(note_FFT[:int(note.size/2)])
         
-        self.features = {'magnitude': self.magnitude_FFT[self.peak], 'harmonique': self.peak / note.size * self.sample_rate,
-                         'magnitude_dB': self.magnitude_FFT_dB[self.peak], 'phase': self.phase_FFT[self.peak]}
 
-        return {'peak': self.peak, 'FFT_magnitude': self.magnitude_FFT, 'FFT_magnitude_dB': self.magnitude_FFT_dB,
+
+        self.raw = {'FFT_magnitude': self.magnitude_FFT, 'FFT_magnitude_dB': self.magnitude_FFT_dB,
                 'FFT_phase': self.phase_FFT, 'freq': self.axe_freq}
+
+        return self.raw
+
+
+    def extract_peaks(self, peaks_to_extract, ignore=None, distance=1000, prominence=10):
+        self.peak, _ = signal.find_peaks(self.magnitude_FFT_dB, distance=distance, prominence=prominence)
+        self.peak = self.peak[ignore:peaks_to_extract+ignore]
+
+        self.features = {'magnitude': self.magnitude_FFT[self.peak],
+                         'harmonique': self.peak / self.data.size * self.sample_rate,
+                         'magnitude_dB': self.magnitude_FFT_dB[self.peak], 'phase': self.phase_FFT[self.peak]}
+        return self.peak
 
 
     def extract_envelope(self, order):
@@ -70,35 +92,49 @@ class Extractor:
                          'magnitude_dB': load_data[3]}
         print('values loaded from '+filename+'.csv')
         return self.features
-    
-    def display_extracted_parameters(self):
-        plt.figure(1)
-        plt.plot(np.arange(0, self.data.size, 1)/self.sample_rate, self.data)
-        plt.xlabel('Time (s)')
-        plt.ylabel('Amplitude')
-        plt.figure(2)
-        plt.plot(self.axe_freq, self.magnitude_FFT)
-        plt.ylabel('amplitude')
-        plt.xlabel('Hz')
-        plt.figure(3)
-        plt.plot(self.axe_freq[80000:], self.magnitude_FFT_dB)   
-        plt.ylabel('amplitude (dB)')
-        plt.xlabel('Hz')
-        plt.figure(4)
-        plt.plot(self.axe_freq[80000:], self.magnitude_FFT_dB)
-        plt.plot(self.peak / self.data.size * self.sample_rate, self.magnitude_FFT_dB[self.peak], "x")
-        plt.figure(5)
-        plt.plot(self.envelope)
-        plt.title("Enveloppe du LA#")
-        plt.xlabel("nombre d'échantillons")
-        plt.ylabel("Amplitude")
+
+    #Selection: 1 original signal over time
+
+    def display_extracted_parameters(self, selection):
+        if selection == 1 or selection == 0:
+            plt.figure(1)
+            plt.plot(np.arange(0, self.data.size, 1)/self.sample_rate, self.data)
+            plt.xlabel('Time (s)')
+            plt.ylabel('Amplitude')
+        if selection == 2 or selection == 0:
+            plt.figure(2)
+            plt.plot(self.axe_freq, self.magnitude_FFT)
+            plt.ylabel('amplitude')
+            plt.xlabel('Hz')
+        if selection == 3 or selection == 0:
+            plt.figure(3)
+            plt.plot(self.axe_freq[int(self.data.size/2):], self.magnitude_FFT_dB)
+            plt.ylabel('amplitude (dB)')
+            plt.xlabel('Hz')
+        if selection == 4 or selection == 0:
+            plt.figure(4)
+            plt.plot(self.axe_freq[int(self.data.size/2):], self.magnitude_FFT_dB)
+            plt.plot(self.peak / self.data.size * self.sample_rate, self.magnitude_FFT_dB[self.peak], "x")
+            plt.ylabel('amplitude (dB)')
+            plt.xlabel('Hz')
+        if selection == 5 or selection == 0:
+            plt.figure(5)
+            plt.plot(self.envelope)
+            plt.title("Enveloppe du LA#")
+            plt.xlabel("nombre d'échantillons")
+            plt.ylabel("Amplitude")
+        plt.show()
 
 if __name__ == '__main__':
     guitare = Extractor('note_guitare_LAd.wav')
+
     sample_rate, data = guitare.get_raw_data()
-    features = guitare.extract_param()
+
     envelope = guitare.extract_envelope(885)
-    b = guitare.save('test')
-    a = guitare.load('test')
-    guitare.display_extracted_parameters()
-    
+    features = guitare.extract_param()
+    peaks = guitare.extract_peaks(32, 1)
+
+
+    #b = guitare.save('test')
+    #a = guitare.load('test')
+    guitare.display_extracted_parameters(0)
