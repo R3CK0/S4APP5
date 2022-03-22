@@ -1,14 +1,11 @@
-import math
-import matplotlib.pyplot as plt
 import numpy as np
-from scipy import signal
-from scipy.io import wavfile
-from os.path import dirname, join as pjoin
-import winsound
+
 
 class Filter:
 
-    def __init__(self):
+    def __init__(self, sample_rate=None, order=None):
+        self.sample_rate = sample_rate
+        self.order = order
         pass
 
     def FIR_order(self):
@@ -27,10 +24,10 @@ class Filter:
 
         return ordre
 
-    def passe_bas(self, sample_rate, order, range):
-        N = order  # Ordre du coupe-bande
-        fe = sample_rate
-        f_range = range
+    def passe_bas(self, bandwidth):
+        N = self.order  # Ordre du coupe-bande
+        fe = self.sample_rate
+        f_range = bandwidth
 
         hlp = []
 
@@ -46,10 +43,12 @@ class Filter:
         return hlp
 
 
-    def coupe_bande(self, sample_rate, order, hlp):
+    def coupe_bande(self, bandwidth):
 
-        fe = sample_rate
-        N = order
+        hlp = self.passe_bas(bandwidth)
+
+        fe = self.sample_rate
+        N = self.order
         n = np.arange((-N / 2) + 1, (N / 2) + 1, 1)
 
         w0 = 2 * np.pi * 1000 / fe

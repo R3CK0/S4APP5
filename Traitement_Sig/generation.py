@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 
 class generation:
 
-    def __init__(self, magnitude, harmonique, phase, envelop, sample_rate):
+    def __init__(self, sample_rate, magnitude=None, harmonique=None, phase=None, envelop=None):
         self.magnitude = magnitude
         self.harmonique = harmonique
         self.phase = phase
@@ -28,22 +28,22 @@ class generation:
 
         son = []
 
-        facteur_SOL = float(np.power(2.0, -3.0 / 12.0))  # Indice -1
-        facteur_MI = float(np.power(2, -6.0 / 12.0))
-        facteur_FA = float(np.power(2, -5.0 / 12.0))
-        facteur_RE = float(np.power(2, -8.0 / 12.0))
+        facteur_SOL = 2**(-3.0/12)  # Indice -1
+        facteur_MI = 2**(-6.0 / 12.0)
+        facteur_FA = 2**(-5.0 / 12.0)
+        facteur_RE = 2**(-8.0 / 12.0)
 
-        for h in self.harmonique:  # Facteurs sur les 32 harmoniques
-            if note == "sol":
-                son = np.append(son, facteur_SOL * h)
-            if note == "mi":
-                son = np.append(son, facteur_MI * h)
-            if note == "fa":
-                son = np.append(son, facteur_FA * h)
-            if note == "re":
-                son = np.append(son, facteur_RE * h)
-            else:
-                son = 1 * self.harmonique
+      # Facteurs sur les 32 harmoniques
+        if note == 'sol':
+            son = self.harmonique * facteur_SOL
+        elif note == 'mi':
+            son = self.harmonique * facteur_MI
+        elif note == 'fa':
+            son = self.harmonique * facteur_FA
+        elif note == "re":
+            son = self.harmonique * facteur_RE
+        elif note == "la":
+            son = 1 * self.harmonique
 
         sinus = np.zeros(len(self.envelop))
 
@@ -53,9 +53,6 @@ class generation:
 
         # Création des notes
         note_finale = sinus * self.envelop
-        print('Sound Generated')
-
-        # Ecriture des notes dans fichier wav
 
         return note_finale
 
@@ -67,7 +64,8 @@ class generation:
         song = []
         for note in sequence:
             if note != 0:
-                song = np.append(song, self.generate(note)[8000:30000])
+                song = np.append(song, self.generate(note)[8000:25000])
+                print(note)
             else:
                 song = np.append(song, np.zeros(30000))
         return song
