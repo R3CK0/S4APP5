@@ -68,28 +68,34 @@ class Extractor:
         self.peak, _ = signal.find_peaks(self.magnitude_FFT_dB, distance=distance, prominence=prominence)
         self.peak = self.peak[ignore:peaks_to_extract+ignore]
 
-        self.features = {'magnitude': self.magnitude_FFT[self.peak],
-                         'harmonique': self.peak / self.data.size * self.sample_rate,
-                         'magnitude_dB': self.magnitude_FFT_dB[self.peak], 'phase': self.phase_FFT[self.peak]}
+        self.features['magnitude'] = self.magnitude_FFT[self.peak]
+        self.features['harmonique'] = self.peak / self.data.size * self.sample_rate
+        self.features['magnitude_dB'] = self.magnitude_FFT_dB[self.peak]
+        self.features['phase'] = self.phase_FFT[self.peak]
+        self.features['peaks'] = self.peak
+
         return self.peak
 
 
     def extract_envelope(self, order):
         hn = np.ones(order) / order
         self.envelope = signal.lfilter(hn, 1, np.abs(self.data))
+        self.features['envelop'] = self.envelope
         return self.envelope
 
     def save(self, filename):
-        save = np.array([self.features['magnitude'], self.features['harmonique'], self.features['phase'],
+        save_features = np.array([self.features['magnitude'], self.features['harmonique'], self.features['phase'],
                          self.features['magnitude_dB']])
-        np.savetxt(filename+'.csv', save, delimiter=',')
+        np.savetxt(filename+'.csv', save_features, delimiter=',')
+        np.savetxt(filename+'_enveloppe.csv', self.envelope, delimiter=',')
         print('saved to '+filename+'.csv')
         return self.features
         
     def load(self, filename):
         load_data = np.genfromtxt(filename+'.csv', delimiter=',')
+        load_enveloppe = np.genfromtxt(filename + '_enveloppe.csv', delimiter=',')
         self.features = {'magnitude': load_data[0], 'harmonique': load_data[1], 'phase': load_data[2],
-                         'magnitude_dB': load_data[3]}
+                         'magnitude_dB': load_data[3], 'envelop': load_enveloppe}
         print('values loaded from '+filename+'.csv')
         return self.features
 

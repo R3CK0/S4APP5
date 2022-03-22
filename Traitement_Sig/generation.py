@@ -1,58 +1,61 @@
-import math
-import matplotlib.pyplot as plt
 import numpy as np
-from scipy import signal
 from scipy.io import wavfile
-from os.path import dirname, join as pjoin
 import winsound
+import matplotlib.pyplot as plt
 
 class generation:
 
     def __init__(self):
+        pass
 
 
+    def save_wav(self, filename, sample_rate, data):
+        scaled = np.int16(data / np.max(np.abs(data)) * 32767)
+        wavfile.write(filename+'.wav', sample_rate, scaled)
+        print('sound saved!')
 
-        def extract_wav(name, samplerate, son):
+    def create_sinus(self, freq, length, magn, rate, phase):
+        t = np.arange(length, dtype=float) / rate
+        sin_note = magn * np.sin(2 * np.pi * freq * t + phase)
+        return sin_note
 
-            data_dir = dirname(__file__)
-            wav_fname = pjoin(data_dir, name)
-            scaled = np.int16(son / np.max(np.abs(son)) * 32767)
-            wavfile.write(wav_fname, samplerate, scaled)
+    def generate(self, note, magnitude, harmonique, phase, envelop, sample_rate):
 
-        def create_sinus(freq, length, magn, rate, phase):
+        son = []
 
-            t = np.arange(length, dtype=float) / rate
-            sin_note = magn * np.sin(2 * np.pi * freq * t + phase)
-            return sin_note
+        facteur_SOL = float(np.power(2.0, -3.0 / 12.0))  # Indice -1
+        facteur_MI = float(np.power(2, -6.0 / 12.0))
+        facteur_FA = float(np.power(2, -5.0 / 12.0))
+        facteur_RE = float(np.power(2, -8.0 / 12.0))
 
-        def generate(note, magnitude ,harmonique ,phase ,envelop ,samplerate):
+        for h in harmonique:  # Facteurs sur les 32 harmoniques
+            if note == "sol":
+                son = np.append(son, facteur_SOL * h)
+            if note == "mi":
+                son = np.append(son, facteur_MI * h)
+            if note == "fa":
+                son = np.append(son, facteur_FA * h)
+            if note == "re":
+                son = np.append(son, facteur_RE * h)
+            else:
+                son = 1 * harmonique
 
-            son = []
+        sinus = np.zeros(len(envelop))
 
-            facteur_SOL = float(np.power(2.0, -3.0 / 12.0))  # Indice -1
-            facteur_MI = float(np.power(2, -6.0 / 12.0))
-            facteur_FA = float(np.power(2, -5.0 / 12.0))
-            facteur_RE = float(np.power(2, -8.0 / 12.0))
+        for i in range(32):
+            sinus += self.create_sinus(son[i], len(envelop), magnitude[i], sample_rate, phase[i])
+        #sinus /= np.max(np.abs(sinus))
 
-            for h in harmonique:  # Facteurs sur les 32 harmoniques
-                if note == "sol":
-                    son.append(facteur_SOL * h)
-                if note == "mi":
-                    son.append(facteur_MI * h)
-                if note == "fa":
-                    son.append(facteur_FA * h)
-                if note == "re":
-                    son.append(facteur_RE * h)
-                else:
-                    son = 1 * harmonique
+        # Création des notes
+        note_finale = sinus * envelop
+        print('Sound Generated')
 
-            sinus = np.zeros(len(envelop))
+        # Ecriture des notes dans fichier wav
+        self.save_wav(note, sample_rate, note_finale)
 
-            for y in range(0, 32):
-                sinus += create_sinus(son[y], len(envelop), magnitude[y], samplerate, phase[y])
+        return note_finale, sinus, envelop
 
-            # Création des notes
-            note_finale = sinus * envelop
+    def play_wav(self, filename):
+        winsound.PlaySound(filename+'.wav', winsound.SND_FILENAME)
 
-            # Ecriture des notes dans fichier wav
-            extract_wav(note + ".wav", samplerate, note_finale)
+
