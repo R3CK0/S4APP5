@@ -2,8 +2,6 @@ from numpy.fft import fft
 import numpy as np
 from scipy import signal
 from scipy.io import wavfile
-import os
-from os.path import dirname, join as pjoin
 import matplotlib.pyplot as plt
 
 class Extractor:

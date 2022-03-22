@@ -1,7 +1,6 @@
 import numpy as np
 from scipy.io import wavfile
 import winsound
-import matplotlib.pyplot as plt
 
 class generation:
 

@@ -1,7 +1,4 @@
-import math
-import matplotlib.pyplot as plt
 import numpy as np
-import winsound
 from extraction import Extractor as extract
 from filter import Filter
 from generation import generation as gen
@@ -25,7 +22,7 @@ if __name__ == '__main__':
     features_loaded = guitare.load('test')
 
     #display features
-    #guitare.display_extracted_parameters(0)
+    guitare.display_extracted_parameters(0)
 
     #generate sounds
     guitare_gen = gen(sample_rate_g, features_loaded['magnitude'], features_loaded['harmonique'],
@@ -60,6 +57,9 @@ if __name__ == '__main__':
     envelope_g = basson.extract_envelope(f.FIR_order())
     features_g = basson.extract_param()
     peaks_g = basson.extract_peaks(32, 1)
+
+    # display features
+    basson.display_extracted_parameters(0)
 
     #save extracted data
     features_saved_b = basson.save('test')
