@@ -29,7 +29,7 @@ if __name__ == '__main__':
                               features_loaded['phase'], features_loaded['envelop'])
 
 
-    #note = gen.generate('sol')
+    note = gen.generate('sol')
     beethoven_sound = guitare_gen.beethoven()
 
     #save notes

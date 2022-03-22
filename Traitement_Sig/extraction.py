@@ -103,28 +103,32 @@ class Extractor:
         if selection == 1 or selection == 0:
             plt.figure(1)
             plt.plot(np.arange(0, self.data.size, 1)/self.sample_rate, self.data)
+            plt.title('signal sonore')
             plt.xlabel('Time (s)')
             plt.ylabel('Amplitude')
         if selection == 2 or selection == 0:
             plt.figure(2)
             plt.plot(self.axe_freq, self.magnitude_FFT)
+            plt.title('amplitude du spectre de frequence')
             plt.ylabel('amplitude')
             plt.xlabel('Hz')
         if selection == 3 or selection == 0:
             plt.figure(3)
             plt.plot(self.axe_freq[int(self.data.size/2):], self.magnitude_FFT_dB)
+            plt.title('magnitude du spectre de frequence')
             plt.ylabel('amplitude (dB)')
             plt.xlabel('Hz')
         if selection == 4 or selection == 0:
             plt.figure(4)
             plt.plot(self.axe_freq[int(self.data.size/2):], self.magnitude_FFT_dB)
             plt.plot(self.peak / self.data.size * self.sample_rate, self.magnitude_FFT_dB[self.peak], "x")
+            plt.title('magnitide en dB + pic important')
             plt.ylabel('amplitude (dB)')
             plt.xlabel('Hz')
         if selection == 5 or selection == 0:
             plt.figure(5)
             plt.plot(self.envelope)
-            plt.title("Enveloppe du LA#")
+            plt.title("Enveloppe temporelle")
             plt.xlabel("nombre d'échantillons")
             plt.ylabel("Amplitude")
         plt.show()
