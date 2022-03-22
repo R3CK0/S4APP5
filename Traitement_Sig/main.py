@@ -13,7 +13,7 @@ if __name__ == '__main__':
     #extract data from guitare
     guitare = extract(fichier_guitare)
     f = Filter()
-    gen = gen()
+
 
     sample_rate, data = guitare.get_raw_data()
 
@@ -29,12 +29,16 @@ if __name__ == '__main__':
     #display features
     #guitare.display_extracted_parameters(0)
 
-    #play sounds
-    note, sinus, envelope = gen.generate('fa', features_loaded['magnitude'], features_loaded['harmonique'],
+    #generate sounds
+    gen = gen(features_loaded['magnitude'], features_loaded['harmonique'],
                               features_loaded['phase'], features_loaded['envelop'], sample_rate)
 
-    gen.play_wav(fichier_guitare)
+    note = gen.generate('fa')
+    gen.save_wav('la', note)
 
-    plt.figure()
-    plt.plot(np.arange(0, sinus.size, 1), sinus)
-    plt.show()
+    beethoven_sound = gen.beethoven()
+    gen.save_wav('beethoven', beethoven_sound)
+
+
+    #play sounds
+    gen.play_wav(fichier_guitare)
