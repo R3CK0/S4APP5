@@ -76,8 +76,8 @@ class Extractor:
 
 
     def extract_envelope(self, order):
-        hn = np.ones(order) / order
-        self.envelope = signal.lfilter(hn, 1, np.abs(self.data))
+        self.hn = np.ones(order) / order
+        self.envelope = signal.lfilter(self.hn, 1, np.abs(self.data))
         self.features['envelop'] = self.envelope
         return self.envelope
 
@@ -103,7 +103,7 @@ class Extractor:
         if selection == 1 or selection == 0:
             plt.figure(1)
             plt.plot(np.arange(0, self.data.size, 1)/self.sample_rate, self.data)
-            plt.title('signal sonore')
+            plt.title('Signal')
             plt.xlabel('Time (s)')
             plt.ylabel('Amplitude')
         if selection == 2 or selection == 0:
@@ -131,6 +131,13 @@ class Extractor:
             plt.title("Enveloppe temporelle")
             plt.xlabel("nombre d'échantillons")
             plt.ylabel("Amplitude")
+        if selection == 6:
+            plt.figure()
+            w, h = signal.freqz(self.hn)
+            plt.plot(w, 20 * np.log10(np.abs(h)))
+            plt.title('FIR Passe-Bas')
+            plt.xlabel('red/echantillons')
+            plt.ylabel('magnitude (dB)')
         plt.show()
 
 if __name__ == '__main__':
